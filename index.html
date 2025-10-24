@@ -585,6 +585,32 @@
     </style>
 </head>
 <body>
+    <script>
+// Password protection
+const correctPassword = "Acharee2025"; // Change this to your password
+
+const savedAuth = localStorage.getItem('mealPlannerAuth');
+
+if (savedAuth !== correctPassword) {
+    const userInput = prompt('🔒 Enter password to access:');
+    
+    if (userInput === correctPassword) {
+        localStorage.setItem('mealPlannerAuth', correctPassword);
+    } else {
+        document.body.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:center; height:100vh; flex-direction:column; font-family:sans-serif; padding:2rem; text-align:center;">
+                <h1 style="color:#dc2626; margin-bottom:1rem;">🔒 Access Denied</h1>
+                <p style="color:#64748b; margin-bottom:1.5rem;">Incorrect password</p>
+                <button onclick="location.reload()" style="padding:0.75rem 1.5rem; background:#667eea; color:white; border:none; border-radius:8px; cursor:pointer; font-size:1rem;">
+                    Try Again
+                </button>
+            </div>
+        `;
+        throw new Error('Access denied');
+    }
+}
+</script>
+
     <div class="header">
         <div class="header-content">
             <h1>🍽️ Acharee Meal Planner</h1>
