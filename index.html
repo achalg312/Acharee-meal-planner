@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Acharee Meal Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .load-json-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .load-json-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tabs {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0.75rem;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-buttons::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            border: none;
+            background: white;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .tab-btn.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab-btn:active {
+            transform: scale(0.95);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .meal-categories {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .meal-category {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .category-breakfast { background: #FFF9C4; }
+        .category-lunch { background: #D0F0C0; }
+        .category-dinner { background: #F4B183; }
+        .category-sweets { background: #F8C8DC; }
+
+        .category-header {
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .random-btn, .cook-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .random-btn:active, .cook-btn:active {
+            transform: scale(0.98);
+        }
+
+        .cook-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            margin-top: 0.75rem;
+        }
+
+        .meal-display {
+            margin-top: 0.75rem;
+        }
+
+        .meal-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #333;
+            line-height: 1.3;
+        }
+
+        .meal-tags {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin: 0.75rem 0;
+        }
+
+        .tag {
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .tag-pcos-friendly { background: #4ade80; color: white; }
+        .tag-not-pcos { background: #ef4444; color: white; }
+        .tag-macro { background: #667eea; color: white; }
+        .tag-food { background: #f59e0b; color: white; }
+        .tag-snoozed { background: #94a3b8; color: white; }
+
+        .macros {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin: 0.75rem 0;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.5);
+            border-radius: 8px;
+        }
+
+        .macro-item {
+            font-size: 0.85rem;
+        }
+
+        .macro-label {
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .search-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .search-btn {
+            padding: 0.75rem 0.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+            touch-action: manipulation;
+        }
+
+        .youtube-btn { background: #FF0000; color: white; }
+        .google-btn { background: #4285F4; color: white; }
+        .instagram-btn {
+            background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+            color: white;
+        }
+
+        .zepto-btn {
+            background: #7C3AED;
+            color: white;
+            width: 100%;
+            margin-top: 0.75rem;
+            grid-column: 1 / -1;
+        }
+
+        .snooze-btn {
+            background: #64748b;
+            color: white;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .search-btn:active {
+            transform: scale(0.95);
+        }
+
+        .ingredients-section {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.7);
+            border-radius: 8px;
+        }
+
+        .ingredients-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-item {
+            padding: 0.2rem 0;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .benefits-section {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .tips-section {
+            margin-top: 0.5rem;
+            padding: 0.65rem;
+            background: rgba(255,255,255,0.4);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .filters {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .filter-label {
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            display: block;
+            color: #667eea;
+            font-size: 0.9rem;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s;
+            appearance: none;
+            background: white url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23667eea' d='M6 9L1 4h10z'/%3E%3C/svg%3E") no-repeat right 0.75rem center;
+            background-size: 12px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .meals-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .meal-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .meal-card.snoozed {
+            opacity: 0.6;
+        }
+
+        .tracker-container {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .tracker-container h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tracker-container p {
+            font-size: 0.9rem;
+        }
+
+        .tracker-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .tracker-item > div:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .tracker-item strong {
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 0.25rem;
+            word-wrap: break-word;
+        }
+
+        .tracker-date {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+
+        .days-remaining {
+            background: #fbbf24;
+            color: white;
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.2rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .json-textarea {
+            width: 100%;
+            min-height: 250px;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
+        }
+
+        .submit-json-btn {
+            width: 100%;
+            padding: 0.9rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .submit-json-btn:active {
+            transform: scale(0.98);
+        }
+
+        .status-message {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .status-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 1.1rem;
+            }
+
+            .load-json-btn {
+                font-size: 0.8rem;
+                padding: 0.5rem 0.75rem;
+            }
+
+            .category-header {
+                font-size: 1.3rem;
+            }
+
+            .meal-name {
+                font-size: 1.05rem;
+            }
+
+            .search-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .search-btn {
+                width: 100%;
+                padding: 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .modal-content {
+                padding: 1rem;
+                max-height: 85vh;
+            }
+        }
+
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .meal-categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .meals-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .meal-categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .meals-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .tabs {
+                padding: 0 1.5rem;
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        button, select, a {
+            min-height: 44px;
+            min-width: 44px;
+        }
+
+        button {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <h1>🍽️ Acharee Meal Planner</h1>
+            <button class="load-json-btn" onclick="openJsonModal()">📥 Load JSON</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab(0)">🏠 Suggestions</button>
+            <button class="tab-btn" onclick="switchTab(1)">📚 Browse All</button>
+            <button class="tab-btn" onclick="switchTab(2)">📊 Tracker</button>
+        </div>
+
+        <div class="tab-content active" id="tab-main">
+            <div class="meal-categories">
+                <div class="meal-category category-breakfast">
+                    <div class="category-header">🥞 Breakfast</div>
+                    <button class="random-btn" onclick="getRandomMeal('breakfast')">Get Random Breakfast</button>
+                    <div id="breakfast-display" class="meal-display"></div>
+                </div>
+
+                <div class="meal-category category-lunch">
+                    <div class="category-header">🥗 Lunch</div>
+                    <button class="random-btn" onclick="getRandomMeal('lunch')">Get Random Lunch</button>
+                    <div id="lunch-display" class="meal-display"></div>
+                </div>
+
+                <div class="meal-category category-dinner">
+                    <div class="category-header">🍽️ Dinner</div>
+                    <button class="random-btn" onclick="getRandomMeal('dinner')">Get Random Dinner</button>
+                    <div id="dinner-display" class="meal-display"></div>
+                </div>
+
+                <div class="meal-category category-sweets">
+                    <div class="category-header">🍰 Sweets</div>
+                    <button class="random-btn" onclick="getRandomMeal('sweets')">Get Random Sweet</button>
+                    <div id="sweets-display" class="meal-display"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-browse">
+            <div class="filters">
+                <div class="filter-group">
+                    <label class="filter-label">Meal Type:</label>
+                    <select class="filter-select" id="filter-type" onchange="filterMeals()">
+                        <option value="all">All Meals</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Macro Category:</label>
+                    <select class="filter-select" id="filter-macro" onchange="filterMeals()">
+                        <option value="all">All Categories</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Food Category:</label>
+                    <select class="filter-select" id="filter-food" onchange="filterMeals()">
+                        <option value="all">All Types</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">PCOS Friendly:</label>
+                    <select class="filter-select" id="filter-pcos" onchange="filterMeals()">
+                        <option value="all">All Meals</option>
+                        <option value="true">PCOS Friendly Only</option>
+                        <option value="false">Non-PCOS Meals</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Snoozed Status:</label>
+                    <select class="filter-select" id="filter-snoozed" onchange="filterMeals()">
+                        <option value="active">Active Meals Only</option>
+                        <option value="snoozed">Snoozed Meals Only</option>
+                        <option value="all">All Meals</option>
+                    </select>
+                </div>
+            </div>
+            <div class="meals-grid" id="meals-list"></div>
+        </div>
+
+        <div class="tab-content" id="tab-tracker">
+            <div class="tracker-container">
+                <h2>🍳 Recently Cooked Meals</h2>
+                <p style="color: #64748b; margin: 1rem 0;">These meals are temporarily removed from rotation for 7 days.</p>
+                <div id="tracker-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="json-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Load Meal Data</h2>
+                <button class="close-btn" onclick="closeJsonModal()">×</button>
+            </div>
+            <p style="font-size: 0.9rem;">Paste your complete JSON meal data below:</p>
+            <textarea class="json-textarea" id="json-input" placeholder='Paste your JSON data here...'></textarea>
+            <button class="submit-json-btn" onclick="loadJsonData()">Load Meals</button>
+            <div class="status-message" id="status-message"></div>
+        </div>
+    </div>
+
+    <script>
+        let mealsData = [];
+        let allMeals = [];
+        let cookedMeals = [];
+        let snoozedMeals = [];
+        let currentDisplayedMeals = {};
+
+        window.addEventListener('load', () => {
+            loadStoredData();
+            if (mealsData.length === 0) {
+                openJsonModal();
+            }
+        });
+
+        function loadStoredData() {
+            const savedData = localStorage.getItem('mealsData');
+            const savedCooked = localStorage.getItem('cookedMeals');
+            const savedSnoozed = localStorage.getItem('snoozedMeals');
+            
+            if (savedData) {
+                try {
+                    const parsed = JSON.parse(savedData);
+                    mealsData = parsed.meals || parsed;
+                    allMeals = mealsData;
+                    initializeApp();
+                } catch (e) {
+                    console.log('No valid saved data');
+                }
+            }
+            
+            if (savedCooked) {
+                try {
+                    cookedMeals = JSON.parse(savedCooked);
+                    cleanupOldCookedMeals();
+                } catch (e) {
+                    cookedMeals = [];
+                }
+            }
+            
+            if (savedSnoozed) {
+                try {
+                    snoozedMeals = JSON.parse(savedSnoozed);
+                    cleanupOldSnoozedMeals();
+                } catch (e) {
+                    snoozedMeals = [];
+                }
+            }
+            
+            updateTrackerDisplay();
+        }
+
+        function cleanupOldCookedMeals() {
+            const now = new Date();
+            cookedMeals = cookedMeals.filter(item => {
+                const cookedDate = new Date(item.cookedDate);
+                const daysDiff = (now - cookedDate) / (1000 * 60 * 60 * 24);
+                return daysDiff < 7;
+            });
+            localStorage.setItem('cookedMeals', JSON.stringify(cookedMeals));
+        }
+
+        function cleanupOldSnoozedMeals() {
+            const now = new Date();
+            snoozedMeals = snoozedMeals.filter(item => {
+                const snoozedDate = new Date(item.snoozedDate);
+                const daysDiff = (now - snoozedDate) / (1000 * 60 * 60 * 24);
+                return daysDiff < 7;
+            });
+            localStorage.setItem('snoozedMeals', JSON.stringify(snoozedMeals));
+        }
+
+        function isMealAvailable(mealId) {
+            return !cookedMeals.some(item => item.mealId === mealId) &&
+                   !snoozedMeals.some(item => item.mealId === mealId);
+        }
+
+        function isMealSnoozed(mealId) {
+            return snoozedMeals.some(item => item.mealId === mealId);
+        }
+
+        function cookMeal(mealId, mealName, category) {
+            const now = new Date();
+            cookedMeals.push({
+                mealId: mealId,
+                mealName: mealName,
+                cookedDate: now.toISOString(),
+                category: category
+            });
+            
+            localStorage.setItem('cookedMeals', JSON.stringify(cookedMeals));
+            updateTrackerDisplay();
+            
+            document.getElementById(`${category}-display`).innerHTML = 
+                '<p style="color: #10b981; font-weight: 600; font-size: 0.9rem;">✅ Meal marked as cooked! Removed from rotation for 7 days.</p>';
+            
+            alert(`"${mealName}" has been marked as cooked and will be removed from suggestions for 7 days.`);
+        }
+
+        function snoozeMeal(mealId, mealName) {
+            const now = new Date();
+            
+            if (snoozedMeals.some(item => item.mealId === mealId)) {
+                alert('This meal is already snoozed!');
+                return;
+            }
+            
+            snoozedMeals.push({
+                mealId: mealId,
+                mealName: mealName,
+                snoozedDate: now.toISOString()
+            });
+            
+            localStorage.setItem('snoozedMeals', JSON.stringify(snoozedMeals));
+            updateTrackerDisplay();
+            filterMeals();
+            
+            alert(`"${mealName}" has been snoozed for 7 days.`);
+        }
+
+        function unsnoozeMeal(mealId) {
+            snoozedMeals = snoozedMeals.filter(item => item.mealId !== mealId);
+            localStorage.setItem('snoozedMeals', JSON.stringify(snoozedMeals));
+            updateTrackerDisplay();
+            filterMeals();
+        }
+
+        function updateTrackerDisplay() {
+            const trackerList = document.getElementById('tracker-list');
+            if (!trackerList) return;
+            
+            const now = new Date();
+            const allTracked = [
+                ...cookedMeals.map(item => ({...item, type: 'cooked'})),
+                ...snoozedMeals.map(item => ({...item, type: 'snoozed'}))
+            ].sort((a, b) => {
+                const dateA = new Date(a.cookedDate || a.snoozedDate);
+                const dateB = new Date(b.cookedDate || b.snoozedDate);
+                return dateB - dateA;
+            });
+            
+            if (allTracked.length === 0) {
+                trackerList.innerHTML = '<p style="color: #64748b; padding: 1.5rem; text-align: center; font-size: 0.9rem;">No meals tracked yet. Cook or snooze meals to see them here!</p>';
+                return;
+            }
+            
+            trackerList.innerHTML = allTracked.map(item => {
+                const itemDate = new Date(item.cookedDate || item.snoozedDate);
+                const daysDiff = Math.ceil((now - itemDate) / (1000 * 60 * 60 * 24));
+                const daysRemaining = Math.max(0, 7 - daysDiff);
+                const dateStr = itemDate.toLocaleDateString('en-IN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                const typeLabel = item.type === 'cooked' ? '🍳 Cooked' : '😴 Snoozed';
+                const categoryLabel = item.category ? ` - ${item.category}` : '';
+                
+                return `
+                    <div class="tracker-item">
+                        <div>
+                            <strong>${item.mealName}</strong>
+                            <div style="font-size: 0.8rem; color: #64748b;">
+                                ${typeLabel}${categoryLabel}
+                            </div>
+                            <div class="tracker-date">${dateStr}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="days-remaining">${daysRemaining}d left</div>
+                            ${item.type === 'snoozed' ? `
+                                <button onclick="unsnoozeMeal(${item.mealId})" 
+                                    style="margin-top: 0.5rem; padding: 0.4rem 0.75rem; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                                    Unsnooze
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openJsonModal() {
+            document.getElementById('json-modal').classList.add('active');
+        }
+
+        function closeJsonModal() {
+            document.getElementById('json-modal').classList.remove('active');
+        }
+
+        function loadJsonData() {
+            const jsonInput = document.getElementById('json-input').value;
+            const statusMsg = document.getElementById('status-message');
+            
+            try {
+                const parsed = JSON.parse(jsonInput);
+                mealsData = parsed.meals || parsed;
+                allMeals = mealsData;
+                
+                localStorage.setItem('mealsData', JSON.stringify(parsed));
+                
+                statusMsg.textContent = `Successfully loaded ${mealsData.length} meals!`;
+                statusMsg.className = 'status-message status-success';
+                statusMsg.style.display = 'block';
+                
+                initializeApp();
+                
+                setTimeout(() => {
+                    closeJsonModal();
+                    statusMsg.style.display = 'none';
+                }, 2000);
+            } catch (e) {
+                statusMsg.textContent = 'Error: Invalid JSON format. Please check your data.';
+                statusMsg.className = 'status-message status-error';
+                statusMsg.style.display = 'block';
+            }
+        }
+
+        function initializeApp() {
+            populateFilters();
+            filterMeals();
+            updateTrackerDisplay();
+        }
+
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-btn');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            tabs[index].classList.add('active');
+            buttons[index].classList.add('active');
+            
+            if (index === 2) {
+                updateTrackerDisplay();
+            }
+        }
+
+        function getRandomMeal(category) {
+            if (mealsData.length === 0) {
+                alert('Please load meal data first!');
+                openJsonModal();
+                return;
+            }
+
+            let filteredMeals = [];
+            
+            switch(category) {
+                case 'breakfast':
+                    filteredMeals = mealsData.filter(m => 
+                        m.meal_type && m.meal_type.toLowerCase().includes('breakfast')
+                    );
+                    break;
+                case 'lunch':
+                    filteredMeals = mealsData.filter(m => 
+                        m.meal_type && 
+                        (m.meal_type.toLowerCase().includes('lunch') || 
+                         m.meal_type.toLowerCase().includes('main') ||
+                         m.meal_type.toLowerCase().includes('side') ||
+                         m.meal_type.toLowerCase().includes('rice') ||
+                         m.meal_type.toLowerCase().includes('grain')) &&
+                        !m.meal_type.toLowerCase().includes('sweet')
+                    );
+                    break;
+                case 'dinner':
+                    filteredMeals = mealsData.filter(m => 
+                        m.meal_type && 
+                        (m.meal_type.toLowerCase().includes('dinner') || 
+                         m.meal_type.toLowerCase().includes('main') ||
+                         m.meal_type.toLowerCase().includes('side') ||
+                         m.meal_type.toLowerCase().includes('rice') ||
+                         m.meal_type.toLowerCase().includes('grain')) &&
+                        !m.meal_type.toLowerCase().includes('sweet')
+                    );
+                    break;
+                case 'sweets':
+                    filteredMeals = mealsData.filter(m => 
+                        m.meal_type && m.meal_type.toLowerCase().includes('sweet')
+                    );
+                    break;
+            }
+
+            filteredMeals = filteredMeals.filter(m => isMealAvailable(m.id));
+
+            if (filteredMeals.length === 0) {
+                document.getElementById(`${category}-display`).innerHTML = 
+                    '<p style="font-size: 0.9rem;">No available meals in this category. All meals are either cooked or snoozed!</p>';
+                return;
+            }
+
+            const randomMeal = filteredMeals[Math.floor(Math.random() * filteredMeals.length)];
+            currentDisplayedMeals[category] = randomMeal;
+            displayMeal(randomMeal, `${category}-display`, category);
+        }
+
+        function displayMeal(meal, containerId, category = null) {
+            const container = document.getElementById(containerId);
+            
+            const pcosClass = meal.pcos_friendly ? 'tag-pcos-friendly' : 'tag-not-pcos';
+            const pcosText = meal.pcos_friendly ? '✓ PCOS' : '✗ Not PCOS';
+            
+            const ingredientsList = Array.isArray(meal.ingredients) 
+                ? meal.ingredients.map(ing => `<div class="ingredient-item">• ${ing}</div>`).join('')
+                : '<div class="ingredient-item">Ingredients not available</div>';
+            
+            const cookButton = category ? `
+                <button class="cook-btn" onclick="cookMeal(${meal.id}, '${meal.meal_name.replace(/'/g, "\\'")}', '${category}')">
+                    ✅ Mark as Cooked
+                </button>
+            ` : '';
+            
+            container.innerHTML = `
+                <div class="meal-name">${meal.meal_name}</div>
+                
+                <div class="meal-tags">
+                    <span class="tag ${pcosClass}">${pcosText}</span>
+                    <span class="tag tag-macro">${meal.macro_category || 'N/A'}</span>
+                    <span class="tag tag-food">${meal.food_category || 'N/A'}</span>
+                </div>
+
+                <div class="macros">
+                    <div class="macro-item"><span class="macro-label">Protein:</span> ${meal.protein_g}g</div>
+                    <div class="macro-item"><span class="macro-label">Carbs:</span> ${meal.carbs_g}g</div>
+                    <div class="macro-item"><span class="macro-label">Fats:</span> ${meal.fats_g}g</div>
+                    <div class="macro-item"><span class="macro-label">Calories:</span> ${meal.calories}</div>
+                </div>
+
+                ${meal.pcos_benefits ? `<div class="benefits-section"><strong>PCOS Benefits:</strong> ${meal.pcos_benefits}</div>` : ''}
+                ${meal.tips ? `<div class="tips-section"><strong>Tip:</strong> ${meal.tips}</div>` : ''}
+
+                <div class="ingredients-section">
+                    <div class="ingredients-title">📝 Ingredients:</div>
+                    ${ingredientsList}
+                </div>
+
+                <div class="search-buttons">
+                    <button class="search-btn youtube-btn" onclick="searchRecipe('youtube', '${meal.meal_name}')">
+                        🎥 YouTube
+                    </button>
+                    <button class="search-btn google-btn" onclick="searchRecipe('google', '${meal.meal_name}')">
+                        🔍 Google
+                    </button>
+                    <button class="search-btn instagram-btn" onclick="searchRecipe('instagram', '${meal.meal_name}')">
+                        📸 Instagram
+                    </button>
+                    <button class="search-btn zepto-btn" onclick="addToZepto('${meal.meal_name}', ${JSON.stringify(meal.ingredients).replace(/"/g, '&quot;')})">
+                        🛒 Smart Add to Zepto
+                    </button>
+                </div>
+                
+                ${cookButton}
+            `;
+        }
+
+        function searchRecipe(platform, mealName) {
+            const query = encodeURIComponent(mealName + ' recipe');
+            let url;
+            
+            switch(platform) {
+                case 'youtube':
+                    url = `https://www.youtube.com/results?search_query=${query}`;
+                    break;
+                case 'google':
+                    url = `https://www.google.com/search?q=${query}`;
+                    break;
+                case 'instagram':
+                    url = `https://www.instagram.com/explore/tags/${encodeURIComponent(mealName.replace(/\s+/g, ''))}`;
+                    break;
+            }
+            
+            window.open(url, '_blank');
+        }
+
+        function addToZepto(mealName, ingredients) {
+            if (!Array.isArray(ingredients) || ingredients.length === 0) {
+                alert('No ingredients available for this meal');
+                return;
+            }
+
+            const processedIngredients = ingredients.map(ing => {
+                let cleaned = ing
+                    .replace(/\d+(\.\d+)?\s*(cup|cups|tsp|tbsp|tablespoon|teaspoon|kg|g|gram|grams|ml|liter|piece|pieces)/gi, '')
+                    .replace(/\(.*?\)/g, '')
+                    .replace(/\[.*?\]/g, '')
+                    .split(',')[0]
+                    .split('-')[0]
+                    .trim();
+                
+                return cleaned.split(' ').slice(0, 2).join(' ').trim();
+            }).filter(ing => ing.length > 2);
+
+            const uniqueIngredients = [...new Set(processedIngredients)];
+            const ingredientList = uniqueIngredients.join(', ');
+            
+            const confirmed = confirm(
+                `🛒 Smart Zepto Search\n\n` +
+                `Meal: ${mealName}\n\n` +
+                `Key ingredients:\n${ingredientList}\n\n` +
+                `This will open Zepto with an intelligent search.\n\n` +
+                `Click OK to continue.`
+            );
+            
+            if (confirmed) {
+                const topIngredients = uniqueIngredients.slice(0, 6).join(' ');
+                const zeptoSearch = encodeURIComponent(topIngredients);
+                const zeptoUrl = `https://www.zeptonow.com/search?query=${zeptoSearch}`;
+                
+                window.open(zeptoUrl, '_blank');
+            }
+        }
+
+        function populateFilters() {
+            const types = [...new Set(mealsData.map(m => m.meal_type))].sort();
+            const macros = [...new Set(mealsData.map(m => m.macro_category))].sort();
+            const foods = [...new Set(mealsData.map(m => m.food_category))].sort();
+            
+            const typeSelect = document.getElementById('filter-type');
+            const macroSelect = document.getElementById('filter-macro');
+            const foodSelect = document.getElementById('filter-food');
+            
+            types.forEach(type => {
+                if (type) {
+                    const option = document.createElement('option');
+                    option.value = type;
+                    option.textContent = type;
+                    typeSelect.appendChild(option);
+                }
+            });
+            
+            macros.forEach(macro => {
+                if (macro) {
+                    const option = document.createElement('option');
+                    option.value = macro;
+                    option.textContent = macro;
+                    macroSelect.appendChild(option);
+                }
+            });
+            
+            foods.forEach(food => {
+                if (food) {
+                    const option = document.createElement('option');
+                    option.value = food;
+                    option.textContent = food;
+                    foodSelect.appendChild(option);
+                }
+            });
+        }
+
+        function filterMeals() {
+            const typeFilter = document.getElementById('filter-type').value;
+            const macroFilter = document.getElementById('filter-macro').value;
+            const foodFilter = document.getElementById('filter-food').value;
+            const pcosFilter = document.getElementById('filter-pcos').value;
+            const snoozedFilter = document.getElementById('filter-snoozed').value;
+            
+            let filtered = mealsData;
+            
+            if (typeFilter !== 'all') {
+                filtered = filtered.filter(m => m.meal_type === typeFilter);
+            }
+            if (macroFilter !== 'all') {
+                filtered = filtered.filter(m => m.macro_category === macroFilter);
+            }
+            if (foodFilter !== 'all') {
+                filtered = filtered.filter(m => m.food_category === foodFilter);
+            }
+            if (pcosFilter !== 'all') {
+                filtered = filtered.filter(m => m.pcos_friendly === (pcosFilter === 'true'));
+            }
+            
+            if (snoozedFilter === 'active') {
+                filtered = filtered.filter(m => !isMealSnoozed(m.id));
+            } else if (snoozedFilter === 'snoozed') {
+                filtered = filtered.filter(m => isMealSnoozed(m.id));
+            }
+            
+            displayMealsList(filtered);
+        }
+
+        function displayMealsList(meals) {
+            const container = document.getElementById('meals-list');
+            
+            if (meals.length === 0) {
+                container.innerHTML = '<p style="font-size: 0.9rem; padding: 1rem;">No meals found matching your filters.</p>';
+                return;
+            }
+            
+            container.innerHTML = meals.map(meal => {
+                const pcosClass = meal.pcos_friendly ? 'tag-pcos-friendly' : 'tag-not-pcos';
+                const pcosText = meal.pcos_friendly ? '✓ PCOS' : '✗ Not PCOS';
+                const isSnoozed = isMealSnoozed(meal.id);
+                const cardClass = isSnoozed ? 'meal-card snoozed' : 'meal-card';
+                
+                const ingredientsList = Array.isArray(meal.ingredients) 
+                    ? meal.ingredients.map(ing => `<div class="ingredient-item">• ${ing}</div>`).join('')
+                    : '<div class="ingredient-item">Ingredients not available</div>';
+                
+                const snoozeButtonText = isSnoozed ? '⏰ Snoozed' : '😴 Snooze 7 Days';
+                const snoozeButtonDisabled = isSnoozed ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : '';
+                
+                return `
+                    <div class="${cardClass}">
+                        <div class="meal-name">${meal.meal_name}</div>
+                        
+                        <div class="meal-tags">
+                            <span class="tag ${pcosClass}">${pcosText}</span>
+                            <span class="tag tag-macro">${meal.macro_category || 'N/A'}</span>
+                            <span class="tag tag-food">${meal.food_category || 'N/A'}</span>
+                            ${isSnoozed ? '<span class="tag tag-snoozed">😴 Snoozed</span>' : ''}
+                        </div>
+
+                        <div class="macros">
+                            <div class="macro-item"><span class="macro-label">Protein:</span> ${meal.protein_g}g</div>
+                            <div class="macro-item"><span class="macro-label">Carbs:</span> ${meal.carbs_g}g</div>
+                            <div class="macro-item"><span class="macro-label">Fats:</span> ${meal.fats_g}g</div>
+                            <div class="macro-item"><span class="macro-label">Calories:</span> ${meal.calories}</div>
+                        </div>
+
+                        <div class="ingredients-section">
+                            <div class="ingredients-title">📝 Ingredients:</div>
+                            ${ingredientsList}
+                        </div>
+
+                        ${meal.pcos_benefits ? `<div class="benefits-section"><strong>PCOS Benefits:</strong> ${meal.pcos_benefits}</div>` : ''}
+
+                        <div class="search-buttons">
+                            <button class="search-btn youtube-btn" onclick="searchRecipe('youtube', '${meal.meal_name}')">
+                                🎥 YouTube
+                            </button>
+                            <button class="search-btn google-btn" onclick="searchRecipe('google', '${meal.meal_name}')">
+                                🔍 Google
+                            </button>
+                            <button class="search-btn instagram-btn" onclick="searchRecipe('instagram', '${meal.meal_name}')">
+                                📸 Instagram
+                            </button>
+                            <button class="search-btn zepto-btn" onclick="addToZepto('${meal.meal_name}', ${JSON.stringify(meal.ingredients).replace(/"/g, '&quot;')})">
+                                🛒 Smart Zepto
+                            </button>
+                            <button class="search-btn snooze-btn" onclick="snoozeMeal(${meal.id}, '${meal.meal_name.replace(/'/g, "\\'")}')}" ${snoozeButtonDisabled}>
+                                ${snoozeButtonText}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
